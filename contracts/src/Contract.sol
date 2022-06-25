@@ -33,6 +33,7 @@ contract Contract {
     /// @param nullifierHash The nullifier hash for this proof, preventing double signaling (returned by the JS widget).
     /// @param proof The zero-knowledge proof that demostrates the claimer is registered with World ID (returned by the JS widget).
     /// @dev Feel free to rename this method however you want! We've used `claim`, `verify` or `execute` in the past.
+    // TODO: rename this
     function verifyAndExecute(
         address signal,
         uint256 root,
