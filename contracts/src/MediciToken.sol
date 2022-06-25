@@ -11,4 +11,8 @@ contract MediciToken is ERC20 {
     function mint(uint256 _lp) public {
         _mint(msg.sender, _lp);
     }
+
+    function burn(uint256 _lp) public {
+        _burn(msg.sender, _lp);
+    }
 }

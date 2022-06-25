@@ -50,6 +50,7 @@ contract MediciPool is Ownable, ReentrancyGuard {
      *************************************************************************/
 
     event DepositMade(address indexed poolProvider, uint256 amount, uint256 shares);
+    event WithdrawalMade(address indexed poolProvider, uint256 amount, uint256 shares);
     event NewLoanRequest(address indexed borrower, uint256 loanId, uint256 amount);
     event LoanApproved(
         address indexed approver,
@@ -118,6 +119,10 @@ contract MediciPool is Ownable, ReentrancyGuard {
         poolToken.mint(_amt);
     }
 
+    function burnShares(uint256 _amt) public onlyApprover {
+        poolToken.burn(_amt);
+    }
+
     function getUSDC(address _addr) internal view returns (IERC20) {
         return IERC20(_addr);
     }
@@ -159,6 +164,21 @@ contract MediciPool is Ownable, ReentrancyGuard {
         }
 
         emit DepositMade(msg.sender, _amt, depositShare);
+    }
+
+    function withdraw(uint256 _amt) external {
+        require(_amt > 0, 'Must withdraw more than zero');
+
+        Approver storage _approver = approvers[msg.sender];
+        require(_approver.balance >= _amt, 'Not enough balance');
+        uint256 withdrawShare = getPoolShare(_amt);
+        burnShares(withdrawShare);
+
+        _approver.balance -= _amt;
+        updateApproverReputation(_approver);
+
+        doUSDCTransfer(address(this), msg.sender, _amt);
+        emit WithdrawalMade(msg.sender, _amt, withdrawShare);
     }
 
     function approve(uint256 _loanId) public onlyApprover {
@@ -251,5 +271,9 @@ contract MediciPool is Ownable, ReentrancyGuard {
             }
         }
         return false;
+    }
+
+    function calcIntr(uint256 _amt, uint256 _durationDays) public view returns (uint256) {
+        return Math.mulDiv(_amt, lendingRateAPR * _durationDays, 10**18 * 365);
     }
 }
