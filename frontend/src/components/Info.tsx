@@ -1,6 +1,7 @@
 import { FC, useState, useEffect } from 'react';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { useContract } from 'wagmi';
+import { Box } from "@chakra-ui/react";
 require('dotenv').config();
 
 export const Info: FC = () => {
@@ -20,8 +21,7 @@ export const Info: FC = () => {
   }, []);
 
   return (
-    <div className="flex-column">
-      {`Total Liquidity: ${liquidity}`}
-    </div>
+    <Box rounded="lg">
+    </Box>
   );
 }
