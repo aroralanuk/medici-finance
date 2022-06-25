@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.13;
 
-import {Test} from "forge-std/Test.sol";
-import {Contract} from "../Contract.sol";
-import {InteractsWithWorldID} from "./helpers/InteractsWithWorldID.sol";
+import { Test } from 'forge-std/Test.sol';
+import { Contract } from '../Contract.sol';
+import { InteractsWithWorldID } from './helpers/InteractsWithWorldID.sol';
 
 contract ContractTest is Test, InteractsWithWorldID {
     Contract internal yourContract;
@@ -14,8 +14,8 @@ contract ContractTest is Test, InteractsWithWorldID {
         // update any constructor parameters you need here!
         yourContract = new Contract(worldID);
 
-        vm.label(address(this), "Sender");
-        vm.label(address(yourContract), "Contract");
+        vm.label(address(this), 'Sender');
+        vm.label(address(yourContract), 'Contract');
     }
 
     function testCanCall() public {
@@ -25,12 +25,7 @@ contract ContractTest is Test, InteractsWithWorldID {
             address(yourContract),
             address(this)
         );
-        yourContract.verifyAndExecute(
-            address(this),
-            getRoot(),
-            nullifierHash,
-            proof
-        );
+        yourContract.verifyAndExecute(address(this), getRoot(), nullifierHash, proof);
 
         // extra checks here
     }
@@ -43,21 +38,11 @@ contract ContractTest is Test, InteractsWithWorldID {
             address(this)
         );
 
-        yourContract.verifyAndExecute(
-            address(this),
-            getRoot(),
-            nullifierHash,
-            proof
-        );
+        yourContract.verifyAndExecute(address(this), getRoot(), nullifierHash, proof);
 
         uint256 root = getRoot();
         vm.expectRevert(Contract.InvalidNullifier.selector);
-        yourContract.verifyAndExecute(
-            address(this),
-            root,
-            nullifierHash,
-            proof
-        );
+        yourContract.verifyAndExecute(address(this), root, nullifierHash, proof);
 
         // extra checks here
     }
@@ -71,13 +56,8 @@ contract ContractTest is Test, InteractsWithWorldID {
             address(this)
         );
 
-        vm.expectRevert(abi.encodeWithSignature("InvalidProof()"));
-        yourContract.verifyAndExecute(
-            address(this),
-            root,
-            nullifierHash,
-            proof
-        );
+        vm.expectRevert(abi.encodeWithSignature('InvalidProof()'));
+        yourContract.verifyAndExecute(address(this), root, nullifierHash, proof);
 
         // extra checks here
     }
@@ -91,13 +71,8 @@ contract ContractTest is Test, InteractsWithWorldID {
         );
 
         uint256 root = getRoot();
-        vm.expectRevert(abi.encodeWithSignature("InvalidProof()"));
-        yourContract.verifyAndExecute(
-            address(0x01),
-            root,
-            nullifierHash,
-            proof
-        );
+        vm.expectRevert(abi.encodeWithSignature('InvalidProof()'));
+        yourContract.verifyAndExecute(address(0x01), root, nullifierHash, proof);
 
         // extra checks here
     }
@@ -114,13 +89,8 @@ contract ContractTest is Test, InteractsWithWorldID {
         proof[0] ^= 42;
 
         uint256 root = getRoot();
-        vm.expectRevert(abi.encodeWithSignature("InvalidProof()"));
-        yourContract.verifyAndExecute(
-            address(0x01),
-            root,
-            nullifierHash,
-            proof
-        );
+        vm.expectRevert(abi.encodeWithSignature('InvalidProof()'));
+        yourContract.verifyAndExecute(address(0x01), root, nullifierHash, proof);
 
         // extra checks here
     }

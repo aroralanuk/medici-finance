@@ -17,7 +17,8 @@ contract MediciPool is Ownable, ReentrancyGuard {
     struct Loan {
         address borrower;
         uint256 amount;
-        bool approved;
+        address approver;
+        uint256 startTime;
     }
 
     struct Approver {
@@ -34,7 +35,7 @@ contract MediciPool is Ownable, ReentrancyGuard {
         uint256[] loans;
     }
 
-    uint256 lendingRateAPR; // per 10^18
+    uint256 public lendingRateAPR; // per 10^18
     Counters.Counter currentId;
     mapping(address => Approver) approvers;
     mapping(address => Borrower) borrowers;
@@ -96,6 +97,10 @@ contract MediciPool is Ownable, ReentrancyGuard {
         lendingRateAPR = _lendingRateAPR;
     }
 
+    function setUSDCAddress(address _addr) public {
+        USDCAddress = _addr;
+    }
+
     function getRepayAmount(address _borrower) public view returns (uint256) {
         // TODO
         // require(loans[_borrower].approved, "Loan not approved");
@@ -141,6 +146,10 @@ contract MediciPool is Ownable, ReentrancyGuard {
         return Math.mulDiv(getPoolReserves(), minPoolAllocation, 10**18);
     }
 
+    function getTimePeriod() internal returns (uint256) {
+        return maxTimePeriod * 24 * 60 * 60;
+    }
+
     /**************************************************************************
      * Core Functions
      *************************************************************************/
@@ -184,14 +193,13 @@ contract MediciPool is Ownable, ReentrancyGuard {
     function approve(uint256 _loanId) public onlyApprover {
         Loan storage loan = loans[_loanId];
         require(loan.amount == 0, 'Invalid loan');
-        require(loan.approved == true, 'Loan already approved');
+        require(loan.approver != address(0), 'Loan already approved');
 
         require(
             approvers[msg.sender].approvalLimit >
                 loan.amount + approvers[msg.sender].currentlyApproved,
             'Going over your approval limit'
         );
-        loan.approved = true;
 
         Borrower storage borrower = borrowers[loan.borrower];
         require(borrower.borrowLimit == 0, "Borrower doesn't exist");
@@ -199,12 +207,13 @@ contract MediciPool is Ownable, ReentrancyGuard {
 
         borrower.loans.push(_loanId);
         borrower.currentlyBorrowed += loan.amount;
-        loans[_loanId].approved = true;
+        loan.approver = msg.sender;
+        loan.startTime = block.timestamp;
 
         approvers[msg.sender].currentlyApproved += loan.amount;
 
         bool success = doUSDCTransfer(address(this), msg.sender, loan.amount);
-        require(success, 'Failed to transfer for deposit');
+        require(success, 'Failed to transfer for borrow');
 
         emit LoanApproved(msg.sender, msg.sender, _loanId, loan.amount);
     }
@@ -214,21 +223,42 @@ contract MediciPool is Ownable, ReentrancyGuard {
 
         _checkUniqueId();
         Borrower storage borrower = borrowers[msg.sender];
-        updateBorrowerReputation(borrower);
+
         require(
             _amt + borrower.currentlyBorrowed < borrower.borrowLimit,
             'Going over your borrow limit'
         );
 
         uint256 loanId = currentId.current();
-        loans[loanId] = Loan(msg.sender, _amt, false);
+        loans[loanId] = Loan(msg.sender, _amt, address(0), 0);
         currentId.increment();
+        updateBorrowerReputation(borrower);
 
         emit NewLoanRequest(msg.sender, loanId, _amt);
     }
 
-    function checkDefault() public returns (bool) {
-        return false;
+    function repay(uint256 _loanId, uint256 _amt) external {
+        require(_amt > 0, 'Must borrow more than zero');
+
+        _checkUniqueId();
+
+        Loan storage loan = loans[_loanId];
+        Borrower storage borrower = borrowers[msg.sender];
+        Approver storage approver = approvers[loan.approver];
+
+        require(!checkDefault(_loanId), 'Passed the deadline');
+        require(_amt <= borrower.currentlyBorrowed, "Can't repay more than you owe");
+        uint256 repayAmt = _amt + calcIntr(_amt, getTimePeriod());
+
+        bool success = doUSDCTransfer(address(this), msg.sender, repayAmt);
+        require(success, 'Failed to transfer for repay');
+
+        loan.amount = 0;
+        removeLoan(_loanId, loan.borrower);
+        borrower.currentlyBorrowed -= _amt;
+
+        updateBorrowerReputation(borrower);
+        updateApproverReputation(approver);
     }
 
     /**************************************************************************
@@ -275,5 +305,28 @@ contract MediciPool is Ownable, ReentrancyGuard {
 
     function calcIntr(uint256 _amt, uint256 _durationDays) public view returns (uint256) {
         return Math.mulDiv(_amt, lendingRateAPR * _durationDays, 10**18 * 365);
+    }
+
+    function checkDefault(uint256 _loanId) public returns (bool) {
+        Loan memory _loan = loans[_loanId];
+        if (_loan.startTime + getTimePeriod() < block.timestamp) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function removeLoan(uint256 _loanId, address _borrower) internal {
+        uint256[] storage loans = borrowers[_borrower].loans;
+        uint256 index;
+        for (uint256 i = 0; i < loans.length; i++) {
+            if (loans[i] == _loanId) {
+                index = i;
+                break;
+            }
+        }
+
+        loans[index] = loans[loans.length - 1];
+        loans.pop();
     }
 }
