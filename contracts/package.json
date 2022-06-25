@@ -1,4 +1,29 @@
 {
+    "name": "@worldcoin/world-id-contracts",
+    "version": "0.1.1",
+    "description": "Smart contracts powering the World ID protocol.",
+    "license": "MIT",
+    "files": [
+        "src/**/*.sol"
+    ],
+    "keywords": [
+        "blockchain",
+        "ethereum",
+        "smart-contracts",
+        "semaphore",
+        "identity",
+        "solidity",
+        "zero-knowledge",
+        "proof-of-uniqueness"
+    ],
+    "homepage": "https://github.com/worldcoin/world-id-contracts",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/worldcoin/world-id-contracts.git"
+    },
+    "bugs": {
+        "url": "https://github.com/worldcoin/world-id-contracts/issues"
+    },
     "dependencies": {
         "@ethersproject/abi": "^5.6.0",
         "@ethersproject/bytes": "^5.6.0",
