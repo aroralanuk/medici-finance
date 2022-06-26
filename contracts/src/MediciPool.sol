@@ -6,8 +6,10 @@ import 'openzeppelin-contracts/contracts/utils/Counters.sol';
 import 'openzeppelin-contracts/contracts/security/ReentrancyGuard.sol';
 import 'openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
 import './helpers/Math.sol';
+import 'forge-std/console.sol';
 
 import './MediciToken.sol';
+import './CheckWorldID.sol';
 
 contract MediciPool is Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -37,14 +39,18 @@ contract MediciPool is Ownable, ReentrancyGuard {
 
     uint256 public lendingRateAPR; // per 10^18
     Counters.Counter currentId;
-    mapping(address => Approver) approvers;
+    mapping(address => Approver) public approvers;
     mapping(address => Borrower) borrowers;
     mapping(uint256 => Loan) loans;
 
-    uint256 totalShares; // total shares of LP tokens
-    uint256 maxLoanAmount;
-    uint256 maxTimePeriod; //in days
-    uint256 minPoolAllocation; // per 10^18
+    uint256 public totalShares; // total shares of LP tokens
+    uint256 public maxLoanAmount;
+    uint256 public maxTimePeriod; //in days
+    uint256 public minPoolAllocation; // per 10^18
+
+    CheckWorldId internal uniqueId;
+    uint256 internal groupId;
+    Semaphore internal semaphore;
 
     /**************************************************************************
      * Events
@@ -160,7 +166,6 @@ contract MediciPool is Ownable, ReentrancyGuard {
 
         bool success = doUSDCTransfer(msg.sender, address(this), _amt);
         require(success, 'Failed to transfer for deposit');
-        mintNewShares(depositShare);
 
         uint256 rep = getReputation();
 
@@ -171,6 +176,7 @@ contract MediciPool is Ownable, ReentrancyGuard {
             approvers[msg.sender].approvalLimit += _amt;
             approvers[msg.sender].reputation = rep;
         }
+        mintNewShares(depositShare);
 
         emit DepositMade(msg.sender, _amt, depositShare);
     }
@@ -184,7 +190,7 @@ contract MediciPool is Ownable, ReentrancyGuard {
         burnShares(withdrawShare);
 
         _approver.balance -= _amt;
-        updateApproverReputation(_approver);
+        updateApproverReputation(msg.sender);
 
         doUSDCTransfer(address(this), msg.sender, _amt);
         emit WithdrawalMade(msg.sender, _amt, withdrawShare);
@@ -224,6 +230,10 @@ contract MediciPool is Ownable, ReentrancyGuard {
         _checkUniqueId();
         Borrower storage borrower = borrowers[msg.sender];
 
+        if (borrower.loans.length == 0) {
+            updateBorrowerReputation(msg.sender);
+        }
+        console.log(borrower.borrowLimit);
         require(
             _amt + borrower.currentlyBorrowed < borrower.borrowLimit,
             'Going over your borrow limit'
@@ -232,15 +242,13 @@ contract MediciPool is Ownable, ReentrancyGuard {
         uint256 loanId = currentId.current();
         loans[loanId] = Loan(msg.sender, _amt, address(0), 0);
         currentId.increment();
-        updateBorrowerReputation(borrower);
+        updateBorrowerReputation(msg.sender);
 
         emit NewLoanRequest(msg.sender, loanId, _amt);
     }
 
     function repay(uint256 _loanId, uint256 _amt) external {
         require(_amt > 0, 'Must borrow more than zero');
-
-        _checkUniqueId();
 
         Loan storage loan = loans[_loanId];
         Borrower storage borrower = borrowers[msg.sender];
@@ -257,9 +265,11 @@ contract MediciPool is Ownable, ReentrancyGuard {
         removeLoan(_loanId, loan.borrower);
         borrower.currentlyBorrowed -= _amt;
 
-        updateBorrowerReputation(borrower);
-        updateApproverReputation(approver);
+        updateBorrowerReputation(msg.sender);
+        updateApproverReputation(loan.approver);
     }
+
+    // function liquidate()
 
     /**************************************************************************
      * Internal Functions
@@ -274,20 +284,22 @@ contract MediciPool is Ownable, ReentrancyGuard {
     }
 
     function getBorrowLimit(uint256 _reputation) public returns (uint256) {
-        return 1000;
+        return 1000e18;
     }
 
     function getApprovalLimit(uint256 _reputation) public returns (uint256) {
-        return 1000;
+        return 1000e18;
     }
 
-    function updateBorrowerReputation(Borrower memory _borrower) public {
+    function updateBorrowerReputation(address _ba) public {
+        Borrower storage _borrower = borrowers[_ba];
         uint256 _rep = getReputation();
         _borrower.reputation = _rep;
         _borrower.borrowLimit = getBorrowLimit(_rep);
     }
 
-    function updateApproverReputation(Approver memory _approver) public {
+    function updateApproverReputation(address _aa) public {
+        Approver storage _approver = approvers[_aa];
         uint256 _rep = getReputation();
         _approver.reputation = _rep;
         _approver.approvalLimit = getApprovalLimit(_rep);
@@ -317,16 +329,16 @@ contract MediciPool is Ownable, ReentrancyGuard {
     }
 
     function removeLoan(uint256 _loanId, address _borrower) internal {
-        uint256[] storage loans = borrowers[_borrower].loans;
+        uint256[] storage borrowerLoans = borrowers[_borrower].loans;
         uint256 index;
-        for (uint256 i = 0; i < loans.length; i++) {
-            if (loans[i] == _loanId) {
+        for (uint256 i = 0; i < borrowerLoans.length; i++) {
+            if (borrowerLoans[i] == _loanId) {
                 index = i;
                 break;
             }
         }
 
-        loans[index] = loans[loans.length - 1];
-        loans.pop();
+        borrowerLoans[index] = borrowerLoans[borrowerLoans.length - 1];
+        borrowerLoans.pop();
     }
 }
