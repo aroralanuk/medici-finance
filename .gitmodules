@@ -13,3 +13,6 @@
 [submodule "lib/zk-kit"]
 	path = lib/zk-kit
 	url = https://github.com/appliedzkp/zk-kit
+[submodule "lib/solmate"]
+	path = lib/solmate
+	url = https://github.com/rari-capital/solmate
