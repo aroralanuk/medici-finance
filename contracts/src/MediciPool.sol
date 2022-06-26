@@ -9,7 +9,8 @@ import './helpers/Math.sol';
 import 'forge-std/console.sol';
 
 import './MediciToken.sol';
-import './CheckWorldID.sol';
+
+// import './CheckWorldID.sol';
 
 contract MediciPool is Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -48,9 +49,9 @@ contract MediciPool is Ownable, ReentrancyGuard {
     uint256 public maxTimePeriod; //in days
     uint256 public minPoolAllocation; // per 10^18
 
-    CheckWorldId internal uniqueId;
+    // CheckWorldId internal uniqueId;
     uint256 internal groupId;
-    Semaphore internal semaphore;
+    // Semaphore internal semaphore;
 
     /**************************************************************************
      * Events

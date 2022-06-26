@@ -33,7 +33,7 @@ async function main(airdropAddress, receiverAddress) {
         identity.getTrapdoor(),
         identity.getNullifier(),
         generateMerkleProof(20, BigInt(0), [identityCommitment], identityCommitment),
-        hashBytes(airdropAddress),
+        hashBytes(pack(['address', 'uint256'], [airdropAddress, 1])),
         receiverAddress
     )
 
