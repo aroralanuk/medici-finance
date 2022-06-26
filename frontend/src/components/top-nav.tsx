@@ -64,7 +64,7 @@ const TopNav: FC = () => {
           />
         ))}
       </HStack>
-      <ConnectButton />
+      <ConnectButton accountStatus="address" />
     </Flex>
   );
 }
