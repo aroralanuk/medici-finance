@@ -1,17 +1,32 @@
 import {
   Text,
-  Center,
-  Button,
-  HStack,
   Heading,
   VStack,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { address, abi } from '../data/data';
+import { useState, useEffect } from 'react';
+import { useContractRead } from 'wagmi';
 
 /* eslint-disable react/jsx-no-constructed-context-values */
 function Home() {
-  const [liquidity, setLiquidity] = useState(0);
   const [loans, setLoans] = useState(0);
+  const [reserves, setReserves] = useState();
+
+  const { data: liquidity } = useContractRead(
+    {
+      addressOrName: address,
+      contractInterface: abi,
+    },
+    'getPoolReserves',
+  )
+
+  const { data: share } = useContractRead(
+    {
+      addressOrName: address,
+      contractInterface: abi,
+    },
+    'getTotalShares',
+  )
 
   return (
     <VStack>
@@ -20,11 +35,11 @@ function Home() {
       </Heading>
       <Text
       >
-        {`Total Pool Liquidity ${liquidity} WETH`}
+        {`Total Pool Liquidity ${liquidity} USDC`}
       </Text>
       <Text
       >
-        {`${loans} Active Loans`}
+        {`Total Share ${share}`}
       </Text>
     </VStack>
   );

@@ -14,6 +14,10 @@ import { AiOutlineMenu as EthereumCurrency } from 'react-icons/ai';
 /* eslint-disable react/jsx-no-constructed-context-values */
 function Lend() {
 
+  const onClick = () => {
+
+  };
+
   return (
     <VStack
       justifyContent="start"
@@ -43,7 +47,7 @@ function Lend() {
           />
         </InputGroup>
         <Button
-          onClick={() => { }}
+          onClick={() => onClick()}
           colorScheme='purple'
         >
           Deposit
