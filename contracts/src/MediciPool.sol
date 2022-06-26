@@ -5,12 +5,13 @@ import 'openzeppelin-contracts/contracts/access/Ownable.sol';
 import 'openzeppelin-contracts/contracts/utils/Counters.sol';
 import 'openzeppelin-contracts/contracts/security/ReentrancyGuard.sol';
 import 'openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
-import './helpers/Math.sol';
+import 'world-id-contracts/Semaphore.sol';
 import 'forge-std/console.sol';
+import 'forge-std/Vm.sol';
 
+import './helpers/Math.sol';
 import './MediciToken.sol';
-
-// import './CheckWorldID.sol';
+import './CheckWorldID.sol';
 
 contract MediciPool is Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -49,9 +50,10 @@ contract MediciPool is Ownable, ReentrancyGuard {
     uint256 public maxTimePeriod; //in days
     uint256 public minPoolAllocation; // per 10^18
 
-    // CheckWorldId internal uniqueId;
-    uint256 internal groupId;
-    // Semaphore internal semaphore;
+    CheckWorldID uniqueId;
+    uint256 groupId;
+    Semaphore internal semaphore;
+    mapping(address => uint256) nullifierHashes;
 
     /**************************************************************************
      * Events
@@ -81,6 +83,10 @@ contract MediciPool is Ownable, ReentrancyGuard {
         maxTimePeriod = 30;
         minPoolAllocation = 10 ^ 15;
         totalShares = 0;
+
+        semaphore = new Semaphore();
+        semaphore.createGroup(groupId, 20, 0);
+        uniqueId = new CheckWorldID(semaphore, 1);
     }
 
     /**************************************************************************
@@ -228,7 +234,12 @@ contract MediciPool is Ownable, ReentrancyGuard {
     function request(uint256 _amt) external {
         require(_amt > 0, 'Must borrow more than zero');
 
-        _checkUniqueId();
+        if (nullifierHashes[msg.sender] != 0) {
+            _checkUniqueId();
+        } else {
+            _registerWorldID();
+        }
+
         Borrower storage borrower = borrowers[msg.sender];
 
         if (borrower.loans.length == 0) {
@@ -277,7 +288,15 @@ contract MediciPool is Ownable, ReentrancyGuard {
      *************************************************************************/
 
     function _checkUniqueId() internal returns (bool) {
-        return true;
+        return uniqueId.checkUnique(msg.sender, nullifierHashes[msg.sender]);
+    }
+
+    function _registerWorldID() internal {
+        semaphore.addMember(1, _genIdentityCommitment());
+
+        uint256 root = semaphore.getRoot(1);
+        (uint256 nullifierHash, uint256[8] memory proof) = _genProof(msg.sender);
+        uniqueId.register(msg.sender, root, nullifierHash, proof);
     }
 
     function getReputation() public returns (uint256) {
@@ -341,5 +360,27 @@ contract MediciPool is Ownable, ReentrancyGuard {
 
         borrowerLoans[index] = borrowerLoans[borrowerLoans.length - 1];
         borrowerLoans.pop();
+    }
+
+    function _genIdentityCommitment() internal returns (uint256) {
+        string[] memory ffiArgs = new string[](2);
+        ffiArgs[0] = 'node';
+        ffiArgs[1] = 'src/test/scripts/generate-commitment.js';
+
+        bytes memory returnData = Vm.ffi(ffiArgs);
+        return abi.decode(returnData, (uint256));
+    }
+
+    function _genProof(address receiver) internal returns (uint256, uint256[8] memory proof) {
+        string[] memory ffiArgs = new string[](5);
+        ffiArgs[0] = 'node';
+        ffiArgs[1] = '--no-warnings';
+        ffiArgs[2] = 'src/test/scripts/generate-proof.js';
+        ffiArgs[3] = address(uniqueId).toString();
+        ffiArgs[4] = address(receiver).toString();
+
+        bytes memory returnData = Vm.ffi(ffiArgs);
+
+        return abi.decode(returnData, (uint256, uint256[8]));
     }
 }

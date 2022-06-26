@@ -1,16 +1,18 @@
+import fs from 'fs'
+import fetch from 'node-fetch'
 import ora from 'ora'
 import dotenv from 'dotenv'
 import readline from 'readline'
 import { Wallet } from '@ethersproject/wallet'
-import { poseidon_gencontract } from 'circomlibjs'
 import { hexlify, concat } from '@ethersproject/bytes'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { defaultAbiCoder as abi } from '@ethersproject/abi'
-import Semaphore from '../out/Semaphore.sol/Semaphore.json' assert { type: 'json' }
-import WorldIDAirdrop from '../out/WorldIDAirdrop.sol/WorldIDAirdrop.json' assert { type: 'json' }
-import WorldIDMultiAirdrop from '../out/WorldIDMultiAirdrop.sol/WorldIDMultiAirdrop.json' assert { type: 'json' }
-import IncrementalBinaryTree from '../out/IncrementalBinaryTree.sol/IncrementalBinaryTree.json' assert { type: 'json' }
 dotenv.config()
+
+// make sure to fix the path if you've renamed your contract!
+// const Contract = fs.readFileSync('./out/WorldIDAirdrop.sol/WorldIDAirdrop.json')
+const Token = fs.readFileSync('./out/MediciToken.sol/MediciToken.json')
+const Pool = fs.readFileSync('./out/MediciPool.sol/MediciPool.json')
 
 let validConfig = true
 if (process.env.RPC_URL === undefined) {
@@ -40,114 +42,50 @@ const ask = async question => {
     })
 }
 
-async function deployPoseidon() {
-    const spinner = ora(`Deploying Poseidon library...`).start()
-    let tx = await wallet.sendTransaction({ data: poseidon_gencontract.createCode(2) })
-    spinner.text = `Waiting for Poseidon deploy transaction (tx: ${tx.hash})`
-    tx = await tx.wait()
-    spinner.succeed(`Deployed Poseidon library to ${tx.contractAddress}`)
+async function main() {
+    const worldIDAddress = await fetch('https://developer.worldcoin.org/api/v1/contracts')
+        .then(res => res.json())
+        .then(res => res.find(({ key }) => key == 'staging.semaphore.wld.eth').value)
 
-    return tx.contractAddress
-}
+    // let inputs = []
+    // // if you need any constructor parameters, use this to get them when running the script:
+    // inputs = [
+    //     await ask('GroupID: '),
+    //     await ask('Token Address: '),
+    //     await ask('Holder Address: '),
+    //     await ask('Airdrop Amount: '),
+    // ]
 
-async function deployIBT(poseidonAddress) {
-    const spinner = ora(`Deploying IncrementalBinaryTree library...`).start()
-    let tx = await wallet.sendTransaction({
-        data: IncrementalBinaryTree.bytecode.object.replace(
-            /__\$\w*?\$__/g,
-            poseidonAddress.slice(2)
-        ),
+    const spinner = ora(`Deploying your contract...`).start()
+
+    let Tokentx = await wallet.sendTransaction({
+        data: hexlify(concat([JSON.parse(Token).bytecode.object])),
+        gasPrice: 60000000000,
     })
-    spinner.text = `Waiting for IncrementalBinaryTree deploy transaction (tx: ${tx.hash})`
-    tx = await tx.wait()
-    spinner.succeed(`Deployed IncrementalBinaryTree library to ${tx.contractAddress}`)
 
-    return tx.contractAddress
-}
+    console.log(JSON.parse(Token).abi)
 
-async function deploySemaphore(ibtAddress) {
-    const spinner = ora(`Deploying Semaphore contract...`).start()
-    let tx = await wallet.sendTransaction({
-        data: Semaphore.bytecode.object.replace(/__\$\w*?\$__/g, ibtAddress.slice(2)),
-    })
-    spinner.text = `Waiting for Semaphore deploy transaction (tx: ${tx.hash})`
-    tx = await tx.wait()
-    spinner.succeed(`Deployed Semaphore contract to ${tx.contractAddress}`)
+    spinner.text = `Waiting for deploy transaction (tx: ${Tokentx.hash})`
+    Tokentx = await Tokentx.wait()
 
-    return tx.contractAddress
-}
+    spinner.succeed(`Deployed your contract to ${Tokentx.contractAddress}`)
 
-async function deployAirdrop(semaphoreAddress) {
-    const [groupId, erc20Address, holderAddress, airdropAmount] = [
-        await ask('Semaphore group id: '),
-        await ask('ERC20 address: '),
-        await ask('ERC20 holder address: '),
-        await ask('Amount to airdrop: '),
-    ]
-
-    const spinner = ora(`Deploying WorldIDAirdrop contract...`).start()
-
-    let tx = await wallet.sendTransaction({
+    let Pooltx = await wallet.sendTransaction({
         data: hexlify(
             concat([
-                WorldIDAirdrop.bytecode.object,
-                abi.encode(WorldIDAirdrop.abi[0].inputs, [
-                    semaphoreAddress,
-                    groupId,
-                    erc20Address,
-                    holderAddress,
-                    airdropAmount,
-                ]),
+                JSON.parse(Pool).bytecode.object,
+                // abi.encode(Contract.abi[0].inputs, [worldIDAddress, ...inputs]),
+
+                abi.encode([Tokentx.contractAddress]),
             ])
         ),
+        gasPrice: 60000000000,
     })
-    spinner.text = `Waiting for WorldIDAirdrop deploy transaction (tx: ${tx.hash})`
-    tx = await tx.wait()
-    spinner.succeed(`Deployed WorldIDAirdrop contract to ${tx.contractAddress}`)
 
-    return tx.contractAddress
-}
+    spinner.text = `Waiting for deploy transaction (tx: ${Pooltx.hash})`
+    Pooltx = await Pooltx.wait()
 
-async function deployMultiAirdrop(semaphoreAddress) {
-    const spinner = ora(`Deploying WorldIDMultiAirdrop contract...`).start()
-
-    let tx = await wallet.sendTransaction({
-        data: hexlify(
-            concat([
-                WorldIDMultiAirdrop.bytecode.object,
-                abi.encode(WorldIDMultiAirdrop.abi[0].inputs, [semaphoreAddress]),
-            ])
-        ),
-    })
-    spinner.text = `Waiting for WorldIDMultiAirdrop deploy transaction (tx: ${tx.hash})`
-    tx = await tx.wait()
-    spinner.succeed(`Deployed WorldIDMultiAirdrop contract to ${tx.contractAddress}`)
-
-    return tx.contractAddress
-}
-
-async function main(poseidonAddress, ibtAddress, semaphoreAddress) {
-    if (!poseidonAddress) poseidonAddress = await deployPoseidon()
-    if (!ibtAddress) poseidonAddress = await deployIBT(poseidonAddress)
-    if (!semaphoreAddress) semaphoreAddress = await deploySemaphore(ibtAddress)
-
-    const option = await ask('Deploy WorldIDAirdrop (1) or WorldIDMultiAirdrop (2)?: ').then(
-        answer => answer.trim()
-    )
-
-    switch (option) {
-        case '1':
-            await deployAirdrop(semaphoreAddress)
-            break
-        case '2':
-            await deployMultiAirdrop(semaphoreAddress)
-            break
-
-        default:
-            console.log('Please enter either 1 or 2. Exiting...')
-            process.exit(1)
-            break
-    }
+    spinner.succeed(`Deployed your contract to ${Poolx.contractAddress}`)
 }
 
 main(...process.argv.splice(2)).then(() => process.exit(0))
