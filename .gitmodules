@@ -10,3 +10,6 @@
 [submodule "lib/semaphore"]
 	path = lib/semaphore
 	url = https://github.com/appliedzkp/semaphore
+[submodule "lib/zk-kit"]
+	path = lib/zk-kit
+	url = https://github.com/appliedzkp/zk-kit
