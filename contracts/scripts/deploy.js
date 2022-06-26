@@ -11,7 +11,8 @@ dotenv.config()
 
 // make sure to fix the path if you've renamed your contract!
 // const Contract = fs.readFileSync('./out/WorldIDAirdrop.sol/WorldIDAirdrop.json')
-const Contract = fs.readFileSync('./out/MediciToken.sol/MediciToken.json')
+const Token = fs.readFileSync('./out/MediciToken.sol/MediciToken.json')
+const Pool = fs.readFileSync('./out/MediciPool.sol/MediciPool.json')
 
 let validConfig = true
 if (process.env.RPC_URL === undefined) {
@@ -57,23 +58,34 @@ async function main() {
 
     const spinner = ora(`Deploying your contract...`).start()
 
-    const stringContract = JSON.parse(Contract)
-    console.log(stringContract.id)
+    let Tokentx = await wallet.sendTransaction({
+        data: hexlify(concat([JSON.parse(Token).bytecode.object])),
+        gasPrice: 60000000000,
+    })
 
-    let tx = await wallet.sendTransaction({
+    console.log(JSON.parse(Token).abi)
+
+    spinner.text = `Waiting for deploy transaction (tx: ${Tokentx.hash})`
+    Tokentx = await Tokentx.wait()
+
+    spinner.succeed(`Deployed your contract to ${Tokentx.contractAddress}`)
+
+    let Pooltx = await wallet.sendTransaction({
         data: hexlify(
             concat([
-                JSON.parse(Contract).bytecode.object,
+                JSON.parse(Pool).bytecode.object,
                 // abi.encode(Contract.abi[0].inputs, [worldIDAddress, ...inputs]),
+
+                abi.encode([Tokentx.contractAddress]),
             ])
         ),
         gasPrice: 60000000000,
     })
 
-    spinner.text = `Waiting for deploy transaction (tx: ${tx.hash})`
-    tx = await tx.wait()
+    spinner.text = `Waiting for deploy transaction (tx: ${Pooltx.hash})`
+    Pooltx = await Pooltx.wait()
 
-    spinner.succeed(`Deployed your contract to ${tx.contractAddress}`)
+    spinner.succeed(`Deployed your contract to ${Poolx.contractAddress}`)
 }
 
 main(...process.argv.splice(2)).then(() => process.exit(0))
