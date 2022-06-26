@@ -9,10 +9,12 @@
 		"@zk-kit/protocols": "^1.11.0",
 		"circomlibjs": "0.0.8",
 		"dotenv": "^16.0.0",
+		"ethers": "^5.6.9",
 		"ora": "^6.1.0"
 	},
 	"type": "module",
 	"devDependencies": {
+		"node-fetch": "^3.2.6",
 		"prettier": "^2.6.0",
 		"prettier-plugin-solidity": "^1.0.0-beta.19"
 	}

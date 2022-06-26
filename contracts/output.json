@@ -1,0 +1,5 @@
+
+node --no-warnings scripts/deploy.js
+4
+node --no-warnings scripts/deploy.js
+4
