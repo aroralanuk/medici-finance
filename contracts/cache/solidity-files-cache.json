@@ -613,6 +613,98 @@
         }
       }
     },
+    "script/HelperConfig.sol": {
+      "lastModificationDate": 1657425373441,
+      "contentHash": "ed28aea8a5e19e11f21337525461cec5",
+      "sourceName": "script/HelperConfig.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.7",
+      "artifacts": {
+        "HelperConfig": {
+          "0.8.15+commit.e14f2714.Darwin.appleclang": "HelperConfig.sol/HelperConfig.json"
+        }
+      }
+    },
+    "script/MediciPool.s.sol": {
+      "lastModificationDate": 1657426436917,
+      "contentHash": "e1703d41cdd89ebc723e7e843d08cb2b",
+      "sourceName": "script/MediciPool.s.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/src/Script.sol",
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/console.sol",
+        "lib/forge-std/src/console2.sol",
+        "lib/openzeppelin-contracts/contracts/access/Ownable.sol",
+        "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol",
+        "lib/openzeppelin-contracts/contracts/utils/Context.sol",
+        "lib/openzeppelin-contracts/contracts/utils/Counters.sol",
+        "script/HelperConfig.sol",
+        "src/MediciPool.sol",
+        "src/MediciToken.sol",
+        "src/helpers/Math.sol"
+      ],
+      "versionRequirement": "^0.8.7",
+      "artifacts": {
+        "DeployMediciPool": {
+          "0.8.15+commit.e14f2714.Darwin.appleclang": "MediciPool.s.sol/DeployMediciPool.json"
+        }
+      }
+    },
     "src/Contract.sol": {
       "lastModificationDate": 1657337189418,
       "contentHash": "0a4db02f64172ef6ba21d89f49444a92",
