@@ -2,3 +2,6 @@ node_modules/
 .parcel-cache
 dist
 .env
+contracts/out/
+contracts/broadcast/
+contracts/cache/
