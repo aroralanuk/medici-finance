@@ -34,8 +34,6 @@ deploy-rinkeby :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc
 
 deploy-testnet :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc-url ${TESTNET_RPC_URL}  --private-key ${PRIVATE_KEY} --broadcast -vvvv
 
-deploy-mumbai :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc-url ${TESTNET_RPC_URL}  --private-key ${PRIVATE_KEY} --broadcast
-
 # This is the private key of account from the mnemonic from the "make anvil" command
 deploy-anvil :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc-url http://localhost:8545  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast 
 
@@ -43,4 +41,4 @@ deploy-all :; make deploy-${network} contract=MediciPool && make deploy-${networ
 
 deploy-export :; make deploy-${network} contract=${contract} && cp ./out/${contract}.sol/${contract}.json ../frontend/src/sdk/abi/${contract}.json 
 
-deploy-export-all :; make deploy-all network=mumbai
+deploy-export-all :; make deploy-all network=testnet
