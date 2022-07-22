@@ -13,6 +13,7 @@ import { useContractWrite, useWaitForTransaction } from 'wagmi';
 
 import ApproverInfo from '../components/ApproverInfo';
 import MediciPoolInterface from '../sdk/abi/MediciPool.abi.json';
+import USDCTokenInterface from '../sdk/abi/USDCToken.abi.json';
 
 const contractConfig = {
     addressOrName: '0x35bfa40f365f8de7707749ba5a483dfef99ed2c9',
@@ -21,7 +22,7 @@ const contractConfig = {
 
 const usdcConfig = {
     addressOrName: '0xD87Ba7A50B2E7E660f678A895E4B72E7CB4CCd9C',
-    contractInterface: MediciPoolInterface.abi,
+    contractInterface: USDCTokenInterface,
 };
 
 function Deposit() {
@@ -43,7 +44,7 @@ function Deposit() {
         isLoading: isDepositLoading,
         isSuccess: isDepositSuccess,
     } = useContractWrite(contractConfig, 'deposit', {
-        args: [],
+        args: [12],
         overrides: { gasLimit: 1e7 },
     });
 
