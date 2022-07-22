@@ -1,23 +1,26 @@
-import { FC } from 'react';
+import { ChakraProvider } from '@chakra-ui/react';
 import {
     getDefaultWallets,
-    RainbowKitProvider,
     lightTheme,
+    RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
+import React from 'react';
+import { FC } from 'react';
 import { chain, configureChains, createClient, WagmiConfig } from 'wagmi';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
-import { ChakraProvider } from '@chakra-ui/react';
-import { alchemyId } from './data/data';
+
+const alchemyId = process.env.REACT_APP_ALCHEMY_KEY;
+
 import Layout from './layouts/layout';
 
 const { chains, provider } = configureChains(
-    [chain.polygonMumbai],
+    [chain.polygonMumbai, chain.goerli],
     [alchemyProvider({ alchemyId }), publicProvider()]
 );
 
 const { connectors } = getDefaultWallets({
-    appName: 'My RainbowKit App',
+    appName: 'Medici Finance',
     chains,
 });
 
@@ -28,6 +31,7 @@ const wagmiClient = createClient({
 });
 
 export const App: FC = () => {
+    console.log(process.env.REACT_APP_ALCHEMY_KEY);
     return (
         <WagmiConfig client={wagmiClient}>
             <RainbowKitProvider
