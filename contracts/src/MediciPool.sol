@@ -237,6 +237,10 @@ contract MediciPool is Ownable, ReentrancyGuard {
         emit LoanApproved(msg.sender, msg.sender, _loanId, loan.amount);
     }
 
+    function newBorrower() public {
+
+    }
+
     function request(uint256 _amt) external {
         require(_amt > 0, 'Must borrow more than zero');
 
@@ -268,7 +272,7 @@ contract MediciPool is Ownable, ReentrancyGuard {
         require(!checkDefault(_loanId), 'Passed the deadline');
         require(_amt <= borrower.currentlyBorrowed, "Can't repay more than you owe");
         uint256 repayAmt = _amt + calcIntr(_amt, getTimePeriodDays(loan.startTime));
-        
+
         bool success = doUSDCTransfer(address(this), msg.sender, _amt);
         require(success, 'Failed to transfer for repay');
 
