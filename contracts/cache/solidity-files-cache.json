@@ -705,44 +705,6 @@
         }
       }
     },
-    "src/Contract.sol": {
-      "lastModificationDate": 1657337189418,
-      "contentHash": "0a4db02f64172ef6ba21d89f49444a92",
-      "sourceName": "src/Contract.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "bytecodeHash": "ipfs"
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ]
-            }
-          },
-          "evmVersion": "london",
-          "libraries": {}
-        }
-      },
-      "imports": [],
-      "versionRequirement": "^0.8.13",
-      "artifacts": {
-        "Contract": {
-          "0.8.15+commit.e14f2714.Darwin.appleclang": "Contract.sol/Contract.json"
-        }
-      }
-    },
     "src/MediciPool.sol": {
       "lastModificationDate": 1657413368392,
       "contentHash": "212b9212303db7a96cc2ac91e41d166f",
@@ -836,6 +798,85 @@
         }
       }
     },
+    "src/Personhood.sol": {
+      "lastModificationDate": 1658786834726,
+      "contentHash": "b47a503b4d65e212a331a26fb89f8316",
+      "sourceName": "src/Personhood.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "src/helpers/ByteHasher.sol",
+        "src/interfaces/IWorldID.sol"
+      ],
+      "versionRequirement": "^0.8.13",
+      "artifacts": {
+        "Personhood": {
+          "0.8.15+commit.e14f2714.Darwin.appleclang": "Personhood.sol/Personhood.json"
+        }
+      }
+    },
+    "src/helpers/ByteHasher.sol": {
+      "lastModificationDate": 1658783361906,
+      "contentHash": "0af7f114be1dae1c0f019305a366e158",
+      "sourceName": "src/helpers/ByteHasher.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.10",
+      "artifacts": {
+        "ByteHasher": {
+          "0.8.15+commit.e14f2714.Darwin.appleclang": "ByteHasher.sol/ByteHasher.json"
+        }
+      }
+    },
     "src/helpers/ERC20Mintable.sol": {
       "lastModificationDate": 1657338635624,
       "contentHash": "4d4143c4956f25da7026be453ba498d4",
@@ -914,6 +955,44 @@
       "artifacts": {
         "Math": {
           "0.8.15+commit.e14f2714.Darwin.appleclang": "Math.sol/Math.json"
+        }
+      }
+    },
+    "src/interfaces/IWorldID.sol": {
+      "lastModificationDate": 1658783387289,
+      "contentHash": "20dc6e3d2d3422391000d0ffc1eede2f",
+      "sourceName": "src/interfaces/IWorldID.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.10",
+      "artifacts": {
+        "IWorldID": {
+          "0.8.15+commit.e14f2714.Darwin.appleclang": "IWorldID.sol/IWorldID.json"
         }
       }
     },
