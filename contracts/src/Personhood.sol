@@ -12,7 +12,7 @@ contract Personhood {
     //////////////////////////////////////////////////////////////////////////////
 
     /// @notice Thrown when attempting to reuse a nullifier
-    error InvalidNullifier();
+    error InvalidNullifier(address borrower);
 
     /// @dev The World ID instance that will be used for verifying proofs
     IWorldID internal immutable worldId;
@@ -23,7 +23,8 @@ contract Personhood {
     string private _actionID;
 
     /// @dev Whether a nullifier hash has been used already. Used to guarantee an action is only performed once by a single person
-    mapping(uint256 => bool) internal nullifierHashes;
+    mapping(uint256 => address) internal nullifierHashes;
+    mapping(address => bool) internal addressVerified;
 
     /// @param _worldId The WorldID instance that will verify the proofs
     constructor(IWorldID _worldId) {
@@ -38,16 +39,17 @@ contract Personhood {
     /// @param root The root of the Merkle tree (returned by the JS widget).
     /// @param nullifierHash The nullifier hash for this proof, preventing double signaling (returned by the JS widget).
     /// @param proof The zero-knowledge proof that demostrates the claimer is registered with World ID (returned by the JS widget).
-    /// @dev Feel free to rename this method however you want! We've used `claim`, `verify` or `execute` in the past.
     function checkNewBorrower(
-        address signal,
+        address borrower,
+        string memory signal,
         uint256 root,
         uint256 nullifierHash,
         uint256[8] calldata proof
     ) public returns (bool) {
-        // First, we make sure this person hasn't done this before
-        // if (nullifierHashes[nullifierHash]) revert InvalidNullifier();
-        if (nullifierHashes[nullifierHash]) return false;
+        // make sure person hasn't already signed up using a different address
+        if (nullifierHashes[nullifierHash] != address(0)
+            || nullifierHashes[nullifierHash] != borrower)
+            revert InvalidNullifier(borrower);
 
         // We now verify the provided proof is valid and the user is verified by World ID
         worldId.verifyProof(
@@ -59,12 +61,14 @@ contract Personhood {
             proof
         );
 
-        // We now record the user has done this, so they can't do it again (proof of uniqueness)
-        nullifierHashes[nullifierHash] = true;
-
-        // Finally, execute your logic here, for example issue a token, NFT, etc...
-        // Make sure to emit some kind of event afterwards!
-
+        // recording new user signup
+        nullifierHashes[nullifierHash] = borrower;
         return true;
+    }
+
+    function checkAlreadyVerified(
+        address borrower
+    ) public view returns (bool) {
+        return addressVerified[borrower];
     }
 }

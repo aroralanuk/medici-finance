@@ -1,8 +1,21 @@
-import { VStack, Text, Box } from '@chakra-ui/react';
-import BorrowerInfo from '../components/BorrowerInfo';
+import { Box, Text, VStack } from '@chakra-ui/react';
+import type { VerificationResponse } from '@worldcoin/id';
 import worldId from '@worldcoin/id';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import React from 'react';
+import {
+    useContractRead,
+    useContractWrite,
+    useWaitForTransaction,
+} from 'wagmi';
+
+import BorrowerInfo from '../components/BorrowerInfo';
+import PersonhoodInterface from '../sdk/abi/MediciPool.abi.json';
+
+const worldIDConfig = {
+    addressOrName: process.env.REACT_APP_WORLDID_ADDR,
+    contractInterface: PersonhoodInterface.abi,
+};
 
 // borrow limit
 // amount to pay back
@@ -28,16 +41,34 @@ const WorldCoinButton: React.FC = () => {
 };
 
 function Borrow() {
+    const [worldIDProof, setWorldIDProof] =
+        React.useState<VerificationResponse | null>(null);
     const [borrowLimit, setBorrowLimit] = useState(0);
+
     const [interest, setInterest] = useState(0);
     const [dueDate, setDueDate] = useState();
+
+    const borrowAction = async () => {
+        if (!worldIDProof) {
+            throw 'World ID missing';
+        }
+    };
+
+    const { data: allowance } = useContractRead(
+        worldIDConfig,
+        'checkAlreadyExists',
+        {
+            args: ['0xb1b4e269dD0D19d9D49f3a95bF6c2c15f13E7943'],
+            watch: true,
+        }
+    );
 
     useEffect(() => {
         const setUpWorldId = async () => {
             if (!worldId.isInitialized()) {
                 worldId.init('world-coin-button', {
                     enable_telemetry: true,
-                    action_id: process.env.REACT_APP_WORLDID_ACTIONID,
+                    action_id: process.env.REACT_APP_WORLDID_ACTION_ID,
                     signal: process.env.REACT_APP_WORLDID_SIGNAL,
                     app_name: 'unique_borrowers',
                     signal_description: 'check if the borrower is unique',

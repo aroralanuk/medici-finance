@@ -652,7 +652,7 @@
       }
     },
     "script/MediciPool.s.sol": {
-      "lastModificationDate": 1657426436917,
+      "lastModificationDate": 1657521713339,
       "contentHash": "e1703d41cdd89ebc723e7e843d08cb2b",
       "sourceName": "script/MediciPool.s.sol",
       "solcConfig": {
@@ -696,7 +696,10 @@
         "script/HelperConfig.sol",
         "src/MediciPool.sol",
         "src/MediciToken.sol",
-        "src/helpers/Math.sol"
+        "src/Personhood.sol",
+        "src/helpers/ByteHasher.sol",
+        "src/helpers/Math.sol",
+        "src/interfaces/IWorldID.sol"
       ],
       "versionRequirement": "^0.8.7",
       "artifacts": {
@@ -706,8 +709,8 @@
       }
     },
     "src/MediciPool.sol": {
-      "lastModificationDate": 1657413368392,
-      "contentHash": "212b9212303db7a96cc2ac91e41d166f",
+      "lastModificationDate": 1659000041320,
+      "contentHash": "19986ec22cdd00de0f1ac1e286d0ec2a",
       "sourceName": "src/MediciPool.sol",
       "solcConfig": {
         "settings": {
@@ -746,7 +749,10 @@
         "lib/openzeppelin-contracts/contracts/utils/Context.sol",
         "lib/openzeppelin-contracts/contracts/utils/Counters.sol",
         "src/MediciToken.sol",
-        "src/helpers/Math.sol"
+        "src/Personhood.sol",
+        "src/helpers/ByteHasher.sol",
+        "src/helpers/Math.sol",
+        "src/interfaces/IWorldID.sol"
       ],
       "versionRequirement": "^0.8.13",
       "artifacts": {
@@ -799,8 +805,8 @@
       }
     },
     "src/Personhood.sol": {
-      "lastModificationDate": 1658786834726,
-      "contentHash": "b47a503b4d65e212a331a26fb89f8316",
+      "lastModificationDate": 1659000021091,
+      "contentHash": "6fe57583c2ff8ab8a01200a13f5779d0",
       "sourceName": "src/Personhood.sol",
       "solcConfig": {
         "settings": {
@@ -1042,7 +1048,7 @@
       }
     },
     "test/MediciPool.t.sol": {
-      "lastModificationDate": 1657413351024,
+      "lastModificationDate": 1657430029895,
       "contentHash": "734832dc7524ee4f683b881438b32c1d",
       "sourceName": "test/MediciPool.t.sol",
       "solcConfig": {
@@ -1088,8 +1094,11 @@
         "lib/openzeppelin-contracts/contracts/utils/Counters.sol",
         "src/MediciPool.sol",
         "src/MediciToken.sol",
+        "src/Personhood.sol",
+        "src/helpers/ByteHasher.sol",
         "src/helpers/ERC20Mintable.sol",
-        "src/helpers/Math.sol"
+        "src/helpers/Math.sol",
+        "src/interfaces/IWorldID.sol"
       ],
       "versionRequirement": "^0.8.13",
       "artifacts": {

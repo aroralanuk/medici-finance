@@ -5,14 +5,14 @@ import {
     InputGroup,
     InputLeftAddon,
     Text,
-    VStack,
     useToast,
+    VStack,
 } from '@chakra-ui/react';
 import React, { createRef } from 'react';
 import { AiOutlineMenu as EthereumCurrency } from 'react-icons/ai';
 import {
-    useContractWrite,
     useContractRead,
+    useContractWrite,
     useWaitForTransaction,
 } from 'wagmi';
 
