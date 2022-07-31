@@ -16,6 +16,7 @@ import { Personhood } from '../src/Personhood.sol';
 contract MediciPoolTest is Test {
     Semaphore internal semaphore;
     Personhood internal ph;
+    Vm internal hevm = Vm(HEVM_ADDRESS);
 
     MediciPool internal pool;
     MediciToken internal mici;
@@ -55,6 +56,14 @@ contract MediciPoolTest is Test {
         ( uint256 balance, , , uint256 currentlyApproved) = pool.approvers(address(this));
         assertEq(balance, 1e18);
         assertEq(currentlyApproved, 0);
+    }
+
+    function testCheckNewBorrower() public {
+        semaphore.createGroup(groupId, 20, 0);
+        semaphore.addMember(groupId, genIdentityCommitment());
+
+        (uint256 nullifierHash, uint256[8] memory proof) = genProof();
+        airdrop.checkNewBorrower(groupId, nullifierHash, proof);
     }
 
     function Request() public {

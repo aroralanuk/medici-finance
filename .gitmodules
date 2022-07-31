@@ -7,3 +7,6 @@
 [submodule "contracts/lib/world-id-contracts"]
 	path = contracts/lib/world-id-contracts
 	url = https://github.com/worldcoin/world-id-contracts
+[submodule "contracts/lib/zk-kit"]
+	path = contracts/lib/zk-kit
+	url = https://github.com/appliedzkp/zk-kit
