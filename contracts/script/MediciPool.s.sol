@@ -12,7 +12,7 @@ contract DeployMediciPool is Script {
     function run() external {
         vm.startBroadcast();
         MediciToken mici = new MediciToken();
-        MediciPool pool = new MediciPool(address(mici));
+        MediciPool pool = new MediciPool(address(mici), address(mici));
         vm.stopBroadcast();
     }
 }

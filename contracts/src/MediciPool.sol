@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import '@openzeppelin/access/Ownable.sol';
-import '@openzeppelin/utils/Counters.sol';
-import '@openzeppelin/security/ReentrancyGuard.sol';
-import '@openzeppelin/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/utils/Counters.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import 'forge-std/console.sol';
 import 'forge-std/Vm.sol';
 
 import './helpers/Math.sol';
 import './MediciToken.sol';
+import './Personhood.sol';
 
 struct Borrower {
         uint256 borrowLimit;
@@ -35,6 +36,7 @@ struct Approver {
 contract MediciPool is Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     MediciToken poolToken;
+    Personhood ph;
     address USDCAddress = 0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747;
 
     uint256 public lendingRateAPR; // per 10^18
@@ -66,8 +68,9 @@ contract MediciPool is Ownable, ReentrancyGuard {
      * Constructor
      *************************************************************************/
 
-    constructor(address _tokenAddr) public Ownable() {
+    constructor(address _tokenAddr, address _phAddr) public Ownable() {
         poolToken = MediciToken(_tokenAddr);
+        ph = Personhood(_phAddr);
         initialize();
     }
 
@@ -85,6 +88,11 @@ contract MediciPool is Ownable, ReentrancyGuard {
 
     modifier onlyApprover() {
         require(approvers[msg.sender].balance > 0, 'Must be an approver');
+        _;
+    }
+
+    modifier uniqueBorrower(address borrower) {
+        require(ph.checkAlreadyVerified(borrower), 'ERROR: invalid worldID');
         _;
     }
 
@@ -237,7 +245,7 @@ contract MediciPool is Ownable, ReentrancyGuard {
         emit LoanApproved(msg.sender, msg.sender, _loanId, loan.amount);
     }
 
-    function request(uint256 _amt) external {
+    function request(uint256 _amt) external uniqueBorrower(msg.sender) {
         require(_amt > 0, 'Must borrow more than zero');
 
         Borrower storage borrower = borrowers[msg.sender];
@@ -268,7 +276,7 @@ contract MediciPool is Ownable, ReentrancyGuard {
         require(!checkDefault(_loanId), 'Passed the deadline');
         require(_amt <= borrower.currentlyBorrowed, "Can't repay more than you owe");
         uint256 repayAmt = _amt + calcIntr(_amt, getTimePeriodDays(loan.startTime));
-        
+
         bool success = doUSDCTransfer(address(this), msg.sender, _amt);
         require(success, 'Failed to transfer for repay');
 

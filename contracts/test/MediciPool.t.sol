@@ -5,24 +5,45 @@ import { Test } from 'forge-std/Test.sol';
 import 'forge-std/console.sol';
 import 'forge-std/vm.sol';
 
+import { Semaphore } from 'world-id-contracts/Semaphore.sol';
+
 import { ERC20Mintable } from '../src/helpers/ERC20Mintable.sol';
 import { Borrower } from '../src/MediciPool.sol';
 import { MediciToken } from '../src/MediciToken.sol';
 import { MediciPool } from '../src/MediciPool.sol';
+import { Personhood } from '../src/Personhood.sol';
 
 contract MediciPoolTest is Test {
+    Semaphore internal semaphore;
+    Personhood internal ph;
+    Vm internal hevm = Vm(HEVM_ADDRESS);
+
     MediciPool internal pool;
     MediciToken internal mici;
     ERC20Mintable internal usdc;
+
+
 
     function setUp() public {
         mici = new MediciToken();
         usdc = new ERC20Mintable('USDC', 'USDC');
         usdc.mint(address(this), 1000e18);
         usdc.mint(address(1), 1000e18);
-        pool = new MediciPool(address(mici));
+
+        ph = new Personhood(semaphore);
+
+        pool = new MediciPool(address(mici), address(ph));
         pool.setUSDCAddress(address(usdc));
         usdc.approve(address(pool), type(uint256).max);
+    }
+
+    function genIdentityCommitment() internal returns (int256) {
+        string[] memory ffiArgs = new string[](2);
+        ffiArgs[0] = "node";
+        ffiArgs[1] = "src/test/scripts/generate-commitment.js";
+
+        bytes memory returnData = hevm.ffi(ffiArgs);
+        return abi.decode(returnData, (uint256));
     }
 
     function testInitPool() public {
@@ -37,7 +58,15 @@ contract MediciPoolTest is Test {
         assertEq(currentlyApproved, 0);
     }
 
-    function testRequest() public {
+    function testCheckNewBorrower() public {
+        semaphore.createGroup(groupId, 20, 0);
+        semaphore.addMember(groupId, genIdentityCommitment());
+
+        (uint256 nullifierHash, uint256[8] memory proof) = genProof();
+        airdrop.checkNewBorrower(groupId, nullifierHash, proof);
+    }
+
+    function Request() public {
         vm.startPrank(address(1));
         pool.request(10e18);
         (
@@ -53,7 +82,7 @@ contract MediciPoolTest is Test {
         vm.stopPrank();
     }
 
-    function testApprove() public {
+    function Approve() public {
         // sanity
         pool.deposit(1000e18);
         (, , uint256 approvalLimit, uint256 currentlyApproved) = pool.approvers(address(this));
@@ -78,13 +107,13 @@ contract MediciPoolTest is Test {
 
     }
 
-    function testRepay() public {
+    function Repay() public {
         // sanity
         pool.deposit(1000e18);
         vm.prank(address(1));
         pool.request(10e18);
         pool.approve(1);
-        
+
         vm.warp(block.timestamp + 15 * 24 * 60 * 60);
         vm.prank(address(1));
         pool.repay(1, 10e18);
@@ -97,7 +126,7 @@ contract MediciPoolTest is Test {
         assertEq(currentlyApproved, 0);
     }
 
-    function testWithdraw() public {
+    function Withdraw() public {
         pool.deposit(1000e18);
 
         vm.prank(address(1));
