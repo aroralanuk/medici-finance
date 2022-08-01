@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import { ByteHasher } from "./helpers/ByteHasher.sol";
-import { IWorldID } from "./interfaces/IWorldID.sol";
+import { IWorldID } from "world-id-contracts/interfaces/IWorldID.sol";
 
 contract Personhood {
     using ByteHasher for bytes;
@@ -35,27 +35,26 @@ contract Personhood {
         _actionID = _id;
     }
 
-    /// @param signal An arbitrary input from the user, usually the user's wallet address (check README for further details)
+    /// @param borrower An arbitrary input as signal from the user, usually the user's wallet address
     /// @param root The root of the Merkle tree (returned by the JS widget).
     /// @param nullifierHash The nullifier hash for this proof, preventing double signaling (returned by the JS widget).
     /// @param proof The zero-knowledge proof that demostrates the claimer is registered with World ID (returned by the JS widget).
     function checkNewBorrower(
         address borrower,
-        string memory signal,
         uint256 root,
         uint256 nullifierHash,
         uint256[8] calldata proof
     ) public returns (bool) {
         // make sure person hasn't already signed up using a different address
         if (nullifierHashes[nullifierHash] != address(0)
-            || nullifierHashes[nullifierHash] != borrower)
+        && nullifierHashes[nullifierHash] != borrower)
             revert InvalidNullifier(borrower);
 
         // We now verify the provided proof is valid and the user is verified by World ID
         worldId.verifyProof(
             root,
             groupId,
-            abi.encodePacked(signal).hashToField(),
+            abi.encodePacked(borrower).hashToField(),
             nullifierHash,
             abi.encodePacked(_actionID).hashToField(),
             proof
