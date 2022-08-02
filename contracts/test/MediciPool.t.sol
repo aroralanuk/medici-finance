@@ -80,14 +80,14 @@ contract MediciPoolTest is Test {
 
     function testCheckNewBorrower() public {
         console.log("woRKS1");
-        semaphore.createGroup(groupId, 20);
+        semaphore.createGroup(groupId, 20, 0);
         console.log("woRKS");
         semaphore.addMember(groupId, genIdentityCommitment());
 
         (uint256 nullifierHash, uint256[8] memory proof) = genProof();
 
         ph.checkNewBorrower(address(1), semaphore.getRoot(groupId),nullifierHash, proof);
-        console.log(ph.checkAlreadyVerified(address(1)));
+        assertTrue(ph.checkAlreadyVerified(address(1)));
     }
 
     function Request() public {
