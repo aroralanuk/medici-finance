@@ -46,9 +46,10 @@ contract MediciPoolTest is Test {
     function genIdentityCommitment() internal returns (uint256) {
         string[] memory ffiArgs = new string[](2);
         ffiArgs[0] = "node";
-        ffiArgs[1] = "src/test/scripts/generate-commitment.js";
+        ffiArgs[1] = "test/scripts/generate-commitment.js";
 
         bytes memory returnData = hevm.ffi(ffiArgs);
+        console.log("iden commit = ", abi.decode(returnData, (uint256)));
         return abi.decode(returnData, (uint256));
     }
 
@@ -56,7 +57,7 @@ contract MediciPoolTest is Test {
         string[] memory ffiArgs = new string[](5);
         ffiArgs[0] = 'node';
         ffiArgs[1] = '--no-warnings';
-        ffiArgs[2] = 'src/test/scripts/generate-proof.js';
+        ffiArgs[2] = 'test/scripts/generate-proof.js';
         ffiArgs[3] = address(ph).toString();
         ffiArgs[4] = address(1).toString();
 
