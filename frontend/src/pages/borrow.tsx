@@ -68,8 +68,8 @@ function Borrow() {
             if (!worldId.isInitialized()) {
                 worldId.init('world-coin-button', {
                     enable_telemetry: true,
-                    action_id: process.env.REACT_APP_WORLDID_ACTION_ID,
-                    signal: process.env.REACT_APP_WORLDID_SIGNAL,
+                    action_id: 'wid_staging_b04e5e2fee1ae804a7ac27a9999f717f',
+                    signal: 'example signal',
                     app_name: 'unique_borrowers',
                     signal_description: 'check if the borrower is unique',
                 });
